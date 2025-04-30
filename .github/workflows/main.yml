@@ -44,8 +44,13 @@ jobs:
           URL="https://github.com/dhivatiradika/merge/archive/${{ steps.semtag.outputs.new_tag }}.tar.gz"
           SHA="${{ steps.compute_sha.outputs.sha256 }}"
 
-          sed -i "s|url \".*\"|url \"$URL\"|" $FORMULA
-          sed -i "s|sha256 \".*\"|sha256 \"$SHA\"|" $FORMULA
+          sed -i -E \
+            "s|^([[:space:]]*url)[[:space:]]+\".*\"|\1 \"$URL\"|" \
+            $FORMULA
+          
+          sed -i -E \
+            "s|^([[:space:]]*sha256)[[:space:]]+\".*\"|\1 \"$SHA\"|" \
+            $FORMULA
 
           git config user.name "bot[bydhiva]"
           git config user.email "bot@bydhiva.com"

@@ -1,0 +1,57 @@
+name: Release & Update Homebrew Formula
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Bump semantic version & push tag
+        id: semtag
+        uses: anothrNick/github-tag-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.semtag.outputs.new_tag }}
+          release_name: Release ${{ steps.semtag.outputs.new_tag }}
+          draft: false
+          prerelease: false
+          
+      - name: Compute tarball SHA256
+        id: compute_sha
+        run: |
+          URL="https://github.com/dhivatiradika/merge/archive/${{ steps.semtag.outputs.new_tag }}.tar.gz"
+          SHA=$(curl -L "$URL" | sha256sum | cut -d' ' -f1)
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+          
+      - name: Update Homebrew Formula
+        run: |
+          FORMULA="merge.rb"
+          URL="https://github.com/dhivatiradika/merge/archive/${{ steps.semtag.outputs.new_tag }}.tar.gz"
+          SHA="${{ steps.compute_sha.outputs.sha256 }}"
+
+          sed -i "s|url \".*\"|url \"$URL\"|" $FORMULA
+          sed -i "s|sha256 \".*\"|sha256 \"$SHA\"|" $FORMULA
+
+          git config user.name "bot[bydhiva]"
+          git config user.email "bot@bydhiva.com"
+          git add $FORMULA
+          git commit -m "chore: bump Homebrew formula for ${{ steps.semtag.outputs.new_tag }}"
+          git push origin main
+
+      - name: Upload merge.sh to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: merge.sh

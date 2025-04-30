@@ -24,6 +24,7 @@ jobs:
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.semtag.outputs.new_tag }}
           release_name: Release ${{ steps.semtag.outputs.new_tag }}
           draft: false

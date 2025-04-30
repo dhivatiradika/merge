@@ -57,8 +57,3 @@ jobs:
           git add $FORMULA
           git commit -m "chore: bump Homebrew formula for ${{ steps.semtag.outputs.new_tag }}"
           git push origin main
-
-      - name: Upload merge.sh to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: merge.sh

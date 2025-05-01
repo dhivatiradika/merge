@@ -58,6 +58,31 @@ if [ ! -d "$DIR" ]; then
 fi
 
 #--------------------------------------------------
+# Helper: is this a text file?
+#--------------------------------------------------
+is_text_file() {
+  local file="$1"
+  # Method 1: use `file --mime-type`
+  if command -v file &>/dev/null; then
+    mime=$(file -b --mime-type "$file")
+    case "$mime" in
+      text/* | application/json | application/xml | application/javascript )
+        return 0
+        ;;
+      *)
+        return 1
+        ;;
+    esac
+  fi
+  # Method 2 fallback: grep test (skips most binaries)
+  if grep -Iq . "$file"; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+#--------------------------------------------------
 # COPY-only mode: pipe merged output into pbcopy
 #--------------------------------------------------
 if $COPY; then
@@ -69,6 +94,10 @@ if $COPY; then
   {
     find "$DIR" -type f | sort | while IFS= read -r FILE; do
       REL="${FILE#$DIR/}"
+      if ! is_text_file "$FILE"; then
+        printf "=== %s (skipped non-text) ===\n\n" "$REL"
+        continue
+      fi
       printf "=== %s ===\n" "$REL"
       cat "$FILE"
       printf "\n\n"
@@ -87,9 +116,15 @@ OUT="${1:-merged.txt}"
 > "$OUT"
 find "$DIR" -type f | sort | while IFS= read -r FILE; do
   REL="${FILE#$DIR/}"
+
+  if ! is_text_file "$FILE"; then
+    printf "=== %s (skipped non-text) ===\n\n" "$REL" >> "$OUT"
+    continue
+  fi
+
   printf "=== %s ===\n" "$REL" >> "$OUT"
   cat "$FILE"                     >> "$OUT"
   printf "\n\n"                  >> "$OUT"
 done
 
-echo "✅ Merged all files (including subfolders) from '$DIR' into '$OUT'."
+echo "✅ Merged all text files (skipping binaries) from '$DIR' into '$OUT'."

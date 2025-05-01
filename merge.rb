@@ -1,8 +1,8 @@
 class Merge < Formula
     desc "Recursively merge all files in a folder with filename headers"
     homepage "https://github.com/dhivatiradika/merge"
-    url "https://github.com/dhivatiradika/merge/archive/v0.1.0.tar.gz"
-    sha256 "eacf7cddb442fd8629f23efb92ee053dc1a8b30f8cf21d57bddf655ae36df0e8"
+    url "https://github.com/dhivatiradika/merge/archive/v0.2.0.tar.gz"
+    sha256 "a2a8d3e6116523662d4eabaf2ca7c496f7126b107bb26dd086a1a817225f7821"
     license  "MIT"
   
     def install
